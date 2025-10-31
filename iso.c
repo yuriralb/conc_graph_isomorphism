@@ -38,13 +38,6 @@ void copyVec(int size, int* copied, int* destiny) {
     destiny[i] = copied[i];
 }
 
-void printVec(int size, int* vec) {
-  for (int i = 0; i < size; i++) {
-    printf(" [%d] ", vec[i]);
-  }
-  printf("\n");
-}
-
 bool verifyPermutation(AdjacencyMatrix *g1, AdjacencyMatrix *g2, int *equivalence) {
   // equivalence é um vetor que representa a bijeção entre os vértices de g1 e g2
   // equivalence[x] == y significa que a bijeção leva o vértice x de g1 no vértice y de g2
@@ -74,7 +67,6 @@ void* producer(void* args) {
     finish++;
   }
 
-  printf("entrei no producer\n");
   for (int i = 0; i < nVertices; ++i)
     equivalence[i] = i;
 
@@ -88,15 +80,10 @@ void* producer(void* args) {
   sem_post(&permsAvailable);
 
   while(exchange_index < nVertices) {
-    printf("produtor no comeco do while\n");
     sem_wait(&bufferSlots);
-    printf("produtor passou do wait\n");
-    // pode dar problema de exclusao mutua
-    printf("antes do lock produtor\n");
     pthread_mutex_lock(&finishLock);
     local_finish = finish;
     pthread_mutex_unlock(&finishLock);
-    printf("depois do lock produtor\n");
     if (local_finish) {
       break;
     }
@@ -104,9 +91,6 @@ void* producer(void* args) {
 
     copyVec(nVertices, equivalence, newEquivalence);
 
-    printf("antes do if\n");
-    printVec(nVertices, equivalence);
-    printVec(nVertices, exchange_counter);
     printf("%d\n", exchange_index);
     if (exchange_counter[exchange_index] < exchange_index) {
       if (exchange_index % 2 == 0) {
@@ -116,19 +100,17 @@ void* producer(void* args) {
         swap(&newEquivalence[exchange_counter[exchange_index]], &newEquivalence[exchange_index]);
       }
 
-      printf ("realizei swap\n");
       pthread_mutex_lock(&bufferLock);
       buffer[in] = newEquivalence;
       in = (in + 1) % bufferSize;
       pthread_mutex_unlock(&bufferLock);
-      printf("depois do buffer luck produtor\n");
       sem_post(&permsAvailable);
       copyVec(nVertices, newEquivalence, equivalence);
 
       exchange_counter[exchange_index]++;
       exchange_index = 1;
-    } else {
-      printf("else\n");
+    }
+    else {
       sem_post(&bufferSlots);
       exchange_counter[exchange_index] = 0;
       exchange_index++;
@@ -141,22 +123,18 @@ void* producer(void* args) {
   finish++;
   pthread_mutex_unlock(&finishLock);
   sem_post(&permsAvailable);
-  printf("Produtora terminou\n");
   pthread_exit(NULL);
 }
 
 void* consumer(void* args) {
   int local_finish = 0;
-  printf("entrei no consumer\n");
   while (1) {
     int* newEquivalence;
     sem_wait(&permsAvailable);
-    printf("consumidor passou do wait\n");
 
     pthread_mutex_lock(&finishLock);
     local_finish = finish;
     pthread_mutex_unlock(&finishLock);
-    printf("depois do lock consumidor\n");
     if (local_finish) {
       break;
     }
@@ -172,18 +150,14 @@ void* consumer(void* args) {
       finish++;
       pthread_mutex_unlock(&finishLock);
       break;
-    } else {
-      printf("nao consegui encontrar\n");
     }
 
-    printf("liberou semaforo produtor\n");
-    sem_post(&bufferSlots); //mudei aqui
+    sem_post(&bufferSlots);
     free(newEquivalence);
   }
 
   sem_post(&permsAvailable);
   sem_post(&bufferSlots);
-  printf("Consumidora terminou\n");
   pthread_exit(NULL);
 }
 
@@ -290,7 +264,8 @@ int main(int argc, char* argv[]) {
 
   if (isomorphismFound) {
     printf("Os grafos sao isomorficos!\n");
-  } else {
+  }
+  else {
     printf("Os grafos nao sao isomorficos.\n");
   }
   //sem_destroy(&isophormismFound);

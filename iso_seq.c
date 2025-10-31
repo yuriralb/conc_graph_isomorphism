@@ -39,13 +39,13 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
   bool isomorphism_found = false;
 
   for (int i = 0; i < n; ++i)
-      equivalence[i] = i;
+    equivalence[i] = i;
 
   if (verifyPermutation(g1, g2, equivalence)) {
-      printPermutation(equivalence, n);
-      free(equivalence);
-      free(exchange_counter);
-      return true;
+    printPermutation(equivalence, n);
+    free(equivalence);
+    free(exchange_counter);
+    return true;
   }
 
   // Algoritmo de Heap para gerar permutações
@@ -63,9 +63,10 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
 
     exchange_counter[exchange_index]++;
     exchange_index = 1;
-  } else {
-      exchange_counter[exchange_index] = 0;
-      exchange_index++;
+  }
+  else {
+    exchange_counter[exchange_index] = 0;
+    exchange_index++;
   }
 }
 
