@@ -1,0 +1,3 @@
+# Ignora arquivos binários gerados pelo gcc
+*.exe
+*.out
