@@ -5,18 +5,18 @@
 #include <semaphore.h>
 
 typedef struct {
-    bool showIsomorphism;
-    bool showTime;
+  bool showIsomorphism;
+  bool showTime;
 } Options;
 
 // Estrutura de matriz de adjacência
 typedef struct {
 
-    // Tamanho da matriz (n x n)
-    int size;
+  // Tamanho da matriz (n x n)
+  int size;
 
-    // Matriz booleana (i, j) = 0 se não há adjacência de i para j e 1 se há
-    bool** matrix;
+  // Matriz booleana (i, j) = 0 se não há adjacência de i para j e 1 se há
+  bool** matrix;
 } AdjacencyMatrix;
 
 int bufferSize; // Tamanho do vetor com as permutações a serem analisadas
@@ -46,22 +46,22 @@ void printVec(int size, int* vec) {
 }
 
 bool verifyPermutation(AdjacencyMatrix *g1, AdjacencyMatrix *g2, int *equivalence) {
-    // equivalence é um vetor que representa a bijeção entre os vértices de g1 e g2
-    // equivalence[x] == y significa que a bijeção leva o vértice x de g1 no vértice y de g2
-    int n = g1->size; // == g2->size
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j <= i; ++j) {
-            if (g1->matrix[i][j] != g2->matrix[equivalence[i]][equivalence[j]])
-                return false;
-        }
+  // equivalence é um vetor que representa a bijeção entre os vértices de g1 e g2
+  // equivalence[x] == y significa que a bijeção leva o vértice x de g1 no vértice y de g2
+  int n = g1->size; // == g2->size
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j <= i; ++j) {
+      if (g1->matrix[i][j] != g2->matrix[equivalence[i]][equivalence[j]])
+        return false;
     }
-    return true;
+  }
+  return true;
 }
 
 void swap(int *a, int *b) {
-    int tmp = *a;
-    *a = *b;
-    *b = tmp;
+  int tmp = *a;
+  *a = *b;
+  *b = tmp;
 }
 
 void* producer(void* args) {
@@ -76,7 +76,7 @@ void* producer(void* args) {
 
   printf("entrei no producer\n");
   for (int i = 0; i < nVertices; ++i)
-      equivalence[i] = i;
+    equivalence[i] = i;
 
   int *newEquivalence = malloc(nVertices * sizeof(int));
   copyVec(nVertices, equivalence, newEquivalence);
@@ -109,29 +109,29 @@ void* producer(void* args) {
     printVec(nVertices, exchange_counter);
     printf("%d\n", exchange_index);
     if (exchange_counter[exchange_index] < exchange_index) {
-        if (exchange_index % 2 == 0) {
-          swap(&newEquivalence[0], &newEquivalence[exchange_index]);
-        }
-        else {
-          swap(&newEquivalence[exchange_counter[exchange_index]], &newEquivalence[exchange_index]);
-        }
+      if (exchange_index % 2 == 0) {
+        swap(&newEquivalence[0], &newEquivalence[exchange_index]);
+      }
+      else {
+        swap(&newEquivalence[exchange_counter[exchange_index]], &newEquivalence[exchange_index]);
+      }
 
-        printf ("realizei swap\n");
-        pthread_mutex_lock(&bufferLock);
-        buffer[in] = newEquivalence;
-        in = (in + 1) % bufferSize;
-        pthread_mutex_unlock(&bufferLock);
-        printf("depois do buffer luck produtor\n");
-        sem_post(&permsAvailable);
-        copyVec(nVertices, newEquivalence, equivalence);
+      printf ("realizei swap\n");
+      pthread_mutex_lock(&bufferLock);
+      buffer[in] = newEquivalence;
+      in = (in + 1) % bufferSize;
+      pthread_mutex_unlock(&bufferLock);
+      printf("depois do buffer luck produtor\n");
+      sem_post(&permsAvailable);
+      copyVec(nVertices, newEquivalence, equivalence);
 
-        exchange_counter[exchange_index]++;
-        exchange_index = 1;
+      exchange_counter[exchange_index]++;
+      exchange_index = 1;
     } else {
       printf("else\n");
-        sem_post(&bufferSlots);
-        exchange_counter[exchange_index] = 0;
-        exchange_index++;
+      sem_post(&bufferSlots);
+      exchange_counter[exchange_index] = 0;
+      exchange_index++;
     }
   }
 
@@ -188,28 +188,28 @@ void* consumer(void* args) {
 }
 
 AdjacencyMatrix readGraph() {
-    int vertices, edges;
-    int source, destination;
+  int vertices, edges;
+  int source, destination;
 
-    printf("Digite a quantidade de vertices: ");
-    scanf("%d", &vertices);
-    AdjacencyMatrix g;
-    g.size = vertices;
-    g.matrix = (bool **) malloc(vertices * sizeof(bool *));
-    for (int i = 0; i < vertices; ++i) {
-        g.matrix[i] = calloc(vertices, sizeof(bool));
-    }
+  printf("Digite a quantidade de vertices: ");
+  scanf("%d", &vertices);
+  AdjacencyMatrix g;
+  g.size = vertices;
+  g.matrix = (bool **) malloc(vertices * sizeof(bool *));
+  for (int i = 0; i < vertices; ++i) {
+    g.matrix[i] = calloc(vertices, sizeof(bool));
+  }
 
-    printf("Digite a quantidade de arestas: ");
-    scanf("%d", &edges);
-    printf("Digite as arestas no formato: <vertice1 vertice2>\n");
-    for (int i = 0; i < edges; ++i) {
-        scanf("%d %d", &source, &destination);
-        g.matrix[source][destination] = true;
-        g.matrix[destination][source] = true;
-    }
+  printf("Digite a quantidade de arestas: ");
+  scanf("%d", &edges);
+  printf("Digite as arestas no formato: <vertice1 vertice2>\n");
+  for (int i = 0; i < edges; ++i) {
+    scanf("%d %d", &source, &destination);
+    g.matrix[source][destination] = true;
+    g.matrix[destination][source] = true;
+  }
 
-    return g;
+  return g;
 }
 
 //entrada do programa ./programa <printIsomorphismo> <showTime> <nConsThreads> <bufferSize>
