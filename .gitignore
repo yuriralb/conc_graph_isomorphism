@@ -4,3 +4,6 @@
 
 # Ignora os binários gerados pelo código python
 *.bin
+
+# Ignora arquivos gerados pelo vscode
+*.vscode
