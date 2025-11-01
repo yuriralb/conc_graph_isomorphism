@@ -26,8 +26,9 @@ int** buffer; // Buffer com as permutações
 int number_of_consumer_threads; // Número de Threads consumidoras
 int number_of_vertices; // Número de vértices de cada grafo
 int in = 0, out = 0;
-bool isomorphism_found = 0;
-bool finish = 0;
+bool isomorphism_found = false;
+bool finish = false;
+bool producer_finished = false;
 pthread_mutex_t buffer_lock, finish_lock;
 sem_t permutations_available;
 sem_t buffer_empty_slot;
@@ -71,7 +72,7 @@ void* producer(void* args) {
   int *exchange_counter = calloc(number_of_vertices, sizeof(int));
 
   if (graph1.size != graph2.size) {
-    finish++;
+    finish = true;
   }
 
   for (int i = 0; i < number_of_vertices; ++i) {
@@ -83,7 +84,7 @@ void* producer(void* args) {
   sem_wait(&buffer_empty_slot);
   pthread_mutex_lock(&buffer_lock);
   buffer[in] = new_permutation;
-  in = (in + 1) % buffer_size;
+  in = (in + 1) % (buffer_size - 1);
   pthread_mutex_unlock(&buffer_lock);
   sem_post(&permutations_available);
 
@@ -110,7 +111,7 @@ void* producer(void* args) {
 
       pthread_mutex_lock(&buffer_lock);
       buffer[in] = new_permutation;
-      in = (in + 1) % buffer_size;
+      in = (in + 1) % (buffer_size);
       pthread_mutex_unlock(&buffer_lock);
       sem_post(&permutations_available);
       copyVec(number_of_vertices, new_permutation, permutation_model);
@@ -127,8 +128,9 @@ void* producer(void* args) {
 
   free(permutation_model);
   free(exchange_counter);
+  //AQUi
   pthread_mutex_lock(&finish_lock);
-  finish++;
+  producer_finished = true;
   pthread_mutex_unlock(&finish_lock);
   sem_post(&permutations_available);
   pthread_exit(NULL);
@@ -142,6 +144,15 @@ void printPermutation(int *permutation, int size) {
   printf("\n");
 }
 
+bool bufferIsEmpty(int** buffer) {
+  for (int i = 0; i < buffer_size; i++) {
+    if (buffer[i] != NULL) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Threads consumidoras que consomem os conteúdos dentro do buffer e testam se a permutação
 // consumida é um isomorfismo ou não
 void* consumer(void* args) {
@@ -150,7 +161,7 @@ void* consumer(void* args) {
     sem_wait(&permutations_available);
 
     pthread_mutex_lock(&finish_lock);
-    if (finish) {
+    if ((finish) || (producer_finished && bufferIsEmpty(buffer))) {
       pthread_mutex_unlock(&finish_lock);
       break;
     }
@@ -158,13 +169,14 @@ void* consumer(void* args) {
 
     pthread_mutex_lock(&buffer_lock);
     new_permutation = buffer[out];
-    out = (out + 1) % buffer_size;
+    buffer[out] = NULL;
+    out = (out + 1) % (buffer_size);
     pthread_mutex_unlock(&buffer_lock);
 
     if (verifyPermutation(&graph1, &graph2, new_permutation)) {
       pthread_mutex_lock(&finish_lock);
-      isomorphism_found++;
-      finish++;
+      isomorphism_found = true;
+      finish = true;
       pthread_mutex_unlock(&finish_lock);
       if (options.show_isomorphism) {
         printPermutation(new_permutation, number_of_vertices);
