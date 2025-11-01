@@ -63,25 +63,25 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
 
   // Algoritmo de Heap para gerar permutações
   while (exchange_index < n) {
-  if (exchange_counter[exchange_index] < exchange_index) {
-    if (exchange_index % 2 == 0)
-      swap(&equivalence[0], &equivalence[exchange_index]);
-    else
-      swap(&equivalence[exchange_counter[exchange_index]], &equivalence[exchange_index]);
+    if (exchange_counter[exchange_index] < exchange_index) {
+      if (exchange_index % 2 == 0)
+        swap(&equivalence[0], &equivalence[exchange_index]);
+      else
+        swap(&equivalence[exchange_counter[exchange_index]], &equivalence[exchange_index]);
 
-    if (verifyPermutation(g1, g2, equivalence)) {
-      printPermutation(equivalence, n);
-      isomorphism_found = true;
+      if (verifyPermutation(g1, g2, equivalence)) {
+        printPermutation(equivalence, n);
+        isomorphism_found = true;
+      }
+
+      exchange_counter[exchange_index]++;
+      exchange_index = 1;
     }
-
-    exchange_counter[exchange_index]++;
-    exchange_index = 1;
+    else {
+      exchange_counter[exchange_index] = 0;
+      exchange_index++;
+    }
   }
-  else {
-    exchange_counter[exchange_index] = 0;
-    exchange_index++;
-  }
-}
 
   free(equivalence);
   free(exchange_counter);
