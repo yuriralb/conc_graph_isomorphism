@@ -31,7 +31,7 @@ bool finish = false;
 bool producer_finished = false;
 pthread_mutex_t buffer_lock, finish_lock;
 sem_t permutations_available;
-sem_t buffer_empty_slot;
+sem_t buffer_empty_slots;
 AdjacencyMatrix graph1;
 AdjacencyMatrix graph2;
 
@@ -81,7 +81,7 @@ void* producer(void* args) {
 
   int *new_permutation = malloc(number_of_vertices * sizeof(int));
   copyVec(number_of_vertices, permutation_model, new_permutation);
-  sem_wait(&buffer_empty_slot);
+  sem_wait(&buffer_empty_slots);
   pthread_mutex_lock(&buffer_lock);
   buffer[in] = new_permutation;
   in = (in + 1) % (buffer_size);
@@ -90,37 +90,35 @@ void* producer(void* args) {
 
   // Algoritmo de Heap para gerar permutações
   while(exchange_index < number_of_vertices) {
-    sem_wait(&buffer_empty_slot);
     pthread_mutex_lock(&finish_lock);
     if (finish) {
       pthread_mutex_unlock(&finish_lock);
       break;
     }
     pthread_mutex_unlock(&finish_lock);
-    int *new_permutation = malloc(number_of_vertices * sizeof(int));
-
-    copyVec(number_of_vertices, permutation_model, new_permutation);
 
     if (exchange_counter[exchange_index] < exchange_index) {
+
       if (exchange_index % 2 == 0) {
-        swap(&new_permutation[0], &new_permutation[exchange_index]);
+        swap(&permutation_model[0], &permutation_model[exchange_index]);
       }
       else {
-        swap(&new_permutation[exchange_counter[exchange_index]], &new_permutation[exchange_index]);
+        swap(&permutation_model[exchange_counter[exchange_index]], &permutation_model[exchange_index]);
       }
 
+      int *new_permutation = malloc(number_of_vertices * sizeof(int));
+      copyVec(number_of_vertices, permutation_model, new_permutation); // tira foto
+      sem_wait(&buffer_empty_slots);
       pthread_mutex_lock(&buffer_lock);
       buffer[in] = new_permutation;
       in = (in + 1) % (buffer_size);
       pthread_mutex_unlock(&buffer_lock);
       sem_post(&permutations_available);
-      copyVec(number_of_vertices, new_permutation, permutation_model);
 
       exchange_counter[exchange_index]++;
       exchange_index = 1;
     }
     else {
-      sem_post(&buffer_empty_slot);
       exchange_counter[exchange_index] = 0;
       exchange_index++;
     }
@@ -128,7 +126,6 @@ void* producer(void* args) {
 
   free(permutation_model);
   free(exchange_counter);
-  //AQUi
   pthread_mutex_lock(&finish_lock);
   producer_finished = true;
   pthread_mutex_unlock(&finish_lock);
@@ -184,12 +181,12 @@ void* consumer(void* args) {
       break;
     }
 
-    sem_post(&buffer_empty_slot);
+    sem_post(&buffer_empty_slots);
     free(new_permutation);
   }
 
   sem_post(&permutations_available);
-  sem_post(&buffer_empty_slot);
+  sem_post(&buffer_empty_slots);
   pthread_exit(NULL);
 }
 
@@ -227,15 +224,14 @@ AdjacencyMatrix readGraph() {
 //entrada do programa ./<nome do programa> <nome do arquivo de leitura>
 int main(int argc, char* argv[]) {
 
-
   double start, finish, elapsed;
 
   if (argc != 2) {
     printf("Entrada invalida. \nUso: %s <nome do arquivo de leitura>.bin\nFormato do arquivo de leitura: <mostrar isomorfismo (0 ou 1)> <mostrar tempo (0 ou 1)> <quantidade de threads consumidoras (int)> <tamanho do buffer (int)>\n<quantidade de vértices do primeiro grafo (int)> <quantidade de arestas do primeiro grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n<quantidade de vértices do segundo grafo (int)> <quantidade de arestas do segundo grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n", argv[0]);
     return 1;
   }
-  
-  // Lendo dados do arquio de leitura 
+
+  // Lendo dados do arquio de leitura
 
   // Abre arquivo de leitura
   FILE* read_file = fopen(argv[1], "rb");
@@ -268,13 +264,13 @@ int main(int argc, char* argv[]) {
     return 3;
   }
 
-  // Número de vértices do primeiro grafo 
+  // Número de vértices do primeiro grafo
   if (fread(&graph1.size, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
     return 3;
   }
 
-  // Número de arestas do primeiro grafo 
+  // Número de arestas do primeiro grafo
   int number_of_edges_graph1;
   if (fread(&number_of_edges_graph1, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
@@ -296,17 +292,17 @@ int main(int argc, char* argv[]) {
       printf("Erro. Rótulo de vértice inválido no arquivo.\n");
       return 4;
     }
-    graph1.matrix[source_destiny[0]][source_destiny[1]] = true; 
-    graph1.matrix[source_destiny[1]][source_destiny[0]] = true; 
+    graph1.matrix[source_destiny[0]][source_destiny[1]] = true;
+    graph1.matrix[source_destiny[1]][source_destiny[0]] = true;
   }
-  
-  // Número de vértices do segundo grafo 
+
+  // Número de vértices do segundo grafo
   if (fread(&graph2.size, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
     return 3;
   }
 
-  // Número de arestas do segundo grafo 
+  // Número de arestas do segundo grafo
   int number_of_edges_graph2;
   if (fread(&number_of_edges_graph2, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
@@ -327,10 +323,10 @@ int main(int argc, char* argv[]) {
       printf("Erro. Rótulo de vértice inválido no arquivo.\n");
       return 4;
     }
-    graph2.matrix[source_destiny[0]][source_destiny[1]] = true; 
-    graph2.matrix[source_destiny[1]][source_destiny[0]] = true; 
+    graph2.matrix[source_destiny[0]][source_destiny[1]] = true;
+    graph2.matrix[source_destiny[1]][source_destiny[0]] = true;
   }
-  
+
   fclose(read_file);
   //free(read_file);
 
@@ -353,9 +349,11 @@ int main(int argc, char* argv[]) {
   //sem_init(&isophormismFound, 0, 1);
 */
 
+number_of_vertices = graph1.size;
+
   GET_TIME(start);
   if (sem_init(&permutations_available, 0, 0)) perror("Criacao do semaforo 1");
-  if (sem_init(&buffer_empty_slot, 0, buffer_size)) perror("Criacao do semaforo 2");
+  if (sem_init(&buffer_empty_slots, 0, buffer_size)) perror("Criacao do semaforo 2");
   pthread_mutex_init(&buffer_lock, NULL);
   pthread_mutex_init(&finish_lock, NULL);
   pthread_t tids[number_of_consumer_threads+1];
@@ -389,7 +387,7 @@ int main(int argc, char* argv[]) {
   pthread_mutex_destroy(&buffer_lock);
   pthread_mutex_destroy(&finish_lock);
   sem_destroy(&permutations_available);
-  sem_destroy(&buffer_empty_slot);
+  sem_destroy(&buffer_empty_slots);
 
   // Calcula e imprime o tempo que o programa esteve rodando
   GET_TIME(finish);
