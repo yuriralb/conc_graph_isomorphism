@@ -8,19 +8,15 @@ def create_binary(file_name,
     with open(file_name, "wb") as f:
         # Parâmetros do programa
         f.write(struct.pack("4i", print_isomorphism, show_time, n_cons_threads, buffer_size))
-        f.write(b"\n")
 
         # Parâmetros sobre o primeiro grafo
         f.write(struct.pack("2i", nv1, na1))
-        f.write(b"\n")
         for x, y in list1[:na1]:
             f.write(struct.pack("2i", x, y))
-            f.write(b"\n")
 
         # Parâmetros sobre o segundo grafo
         f.write(struct.pack("2i", nv2, na2))
         for x, y in list2[:na2]:
-            f.write(b"\n")
             f.write(struct.pack("2i", x, y))
 
     print(f"created file {file_name}")
