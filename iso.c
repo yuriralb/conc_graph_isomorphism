@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
   double start, finish, elapsed;
 
   if (argc < 5) {
-    printf("Entrada invalida. Digite 0 ou 1 para os parametros de entrada:\n%s <printIsomorphismo> <show_time> <number_of_consumer_threads> <buffer_size>\n", argv[0]);
+    printf("Entrada invalida. Formato: \n%s <show_isomorphism> <show_time> <number_of_consumer_threads> <buffer_size>\n", argv[0]);
     return 1;
   }
 
