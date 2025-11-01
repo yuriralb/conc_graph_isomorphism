@@ -224,19 +224,120 @@ AdjacencyMatrix readGraph() {
   return g;
 }
 
-//entrada do programa ./programa <show_isomorphism> <show_time> <number_of_consumer_threads> <buffer_size>
+//entrada do programa ./<nome do programa> <nome do arquivo de leitura>
 int main(int argc, char* argv[]) {
+
 
   double start, finish, elapsed;
 
-  if (argc < 5) {
-    printf("Entrada invalida. Formato: \n%s <show_isomorphism> <show_time> <number_of_consumer_threads> <buffer_size>\n", argv[0]);
+  if (argc != 2) {
+    printf("Entrada invalida. \nUso: %s <nome do arquivo de leitura>.bin\nFormato do arquivo de leitura: <mostrar isomorfismo (0 ou 1)> <mostrar tempo (0 ou 1)> <quantidade de threads consumidoras (int)> <tamanho do buffer (int)>\n<quantidade de vértices do primeiro grafo (int)> <quantidade de arestas do primeiro grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n<quantidade de vértices do segundo grafo (int)> <quantidade de arestas do segundo grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n", argv[0]);
     return 1;
   }
+  
+  // Lendo dados do arquio de leitura 
 
+  // Abre arquivo de leitura
+  FILE* read_file = fopen(argv[1], "rb");
+  if (read_file == NULL) {
+    printf("Erro durante a abertura do arquivo.\n");
+    return 2;
+  }
+
+  // show_isomorphism
+  if (fread(&options.show_isomorphism, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // show_time
+  if (fread(&options.show_time, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // number_of_consumer_threads
+  if (fread(&number_of_consumer_threads, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // buffer_size
+  if (fread(&buffer_size, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // Número de vértices do primeiro grafo 
+  if (fread(&graph1.size, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // Número de arestas do primeiro grafo 
+  int number_of_edges_graph1;
+  if (fread(&number_of_edges_graph1, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // Arestas do primeiro grafo
+  graph1.matrix = (bool **) malloc(graph1.size * sizeof(bool *));
+  for (int i = 0; i < graph1.size; ++i) {
+    graph1.matrix[i] = calloc(graph1.size, sizeof(bool));
+  }
+  int source_destiny[2];
+  for (int i = 0; i < number_of_edges_graph1; i++) {
+    if (fread(source_destiny, sizeof(int), 2, read_file) != 2) {
+      printf("Erro durante a leitura do arquivo.\n");
+      return 3;
+    }
+    if (source_destiny[0] < 0 || source_destiny[1] < 0 || source_destiny[0] >= graph1.size || source_destiny[1] >= graph1.size) {
+      printf("Erro. Rótulo de vértice inválido no arquivo.\n");
+      return 4;
+    }
+    graph1.matrix[source_destiny[0]][source_destiny[1]] = true; 
+    graph1.matrix[source_destiny[1]][source_destiny[0]] = true; 
+  }
+  
+  // Número de vértices do segundo grafo 
+  if (fread(&graph2.size, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // Número de arestas do segundo grafo 
+  int number_of_edges_graph2;
+  if (fread(&number_of_edges_graph2, sizeof(int), 1, read_file) != 1) {
+    printf("Erro durante a leitura do arquivo.\n");
+    return 3;
+  }
+
+  // Arestas do segundo grafo
+  graph2.matrix = (bool **) malloc(graph2.size * sizeof(bool *));
+  for (int i = 0; i < graph2.size; ++i) {
+    graph2.matrix[i] = calloc(graph2.size, sizeof(bool));
+  }
+  for (int i = 0; i < number_of_edges_graph2; i++) {
+    if (fread(source_destiny, sizeof(int), 2, read_file) != 2) {
+      printf("Erro durante a leitura do arquivo.\n");
+      return 3;
+    }
+    if (source_destiny[0] < 0 || source_destiny[1] < 0 || source_destiny[0] >= graph2.size || source_destiny[1] >= graph2.size) {
+      printf("Erro. Rótulo de vértice inválido no arquivo.\n");
+      return 4;
+    }
+    graph2.matrix[source_destiny[0]][source_destiny[1]] = true; 
+    graph2.matrix[source_destiny[1]][source_destiny[0]] = true; 
+  }
+  
+  fclose(read_file);
+  //free(read_file);
+
+/*
+  LEITURA ANTIGA: DIRETO DO TERMINAL
   graph1 = readGraph();
   graph2 = readGraph();
-
   for (int i = 1; i < 3; i++) {
     if (atoi(argv[i]) != 0 && atoi(argv[i]) != 1) { //mudei aqui
       printf("Entrada invalida. O valor de %s deve ser de 0 ou 1.", argv[i]);
@@ -250,6 +351,7 @@ int main(int argc, char* argv[]) {
   buffer_size = atoi(argv[4]);
   number_of_vertices = graph1.size;
   //sem_init(&isophormismFound, 0, 1);
+*/
 
   GET_TIME(start);
   if (sem_init(&permutations_available, 0, 0)) perror("Criacao do semaforo 1");
