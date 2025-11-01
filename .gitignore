@@ -1,3 +1,6 @@
 # Ignora arquivos binários gerados pelo gcc
 *.exe
 *.out
+
+# Ignora os binários gerados pelo código python
+*.bin
