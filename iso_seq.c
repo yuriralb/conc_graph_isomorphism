@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "timer.h"
 
 typedef struct {
   int size;
@@ -16,21 +17,32 @@ void swap(int *a, int *b);
 int main() {
   adjacency_matrix g1 = readGraph();
   adjacency_matrix g2 = readGraph();
+  double start, finish, elapsed;
 
-  if (!testIsomorphism(&g1, &g2))
+  GET_TIME(start);
+  if (!testIsomorphism(&g1, &g2)) {
     printf("The graphs are not isomorphic\n");
+  }
 
+  GET_TIME(finish);
+  elapsed = finish - start;
+  printf("Tempo Sequencial: %e segundos\n", elapsed);
   // libera memória
-  for (int i = 0; i < g1.size; i++) free(g1.matrix[i]);
+  for (int i = 0; i < g1.size; i++) {
+    free(g1.matrix[i]);
+  }
   free(g1.matrix);
-  for (int i = 0; i < g2.size; i++) free(g2.matrix[i]);
+  for (int i = 0; i < g2.size; i++) {
+    free(g2.matrix[i]);
+  }
   free(g2.matrix);
-
   return 0;
 }
 
 bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
-  if (g1->size != g2->size) return false;
+  if (g1->size != g2->size) {
+    return false;
+  }
 
   int n = g1->size;
   int *equivalence = malloc(n * sizeof(int));
@@ -38,8 +50,9 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
   int exchange_index = 1;
   bool isomorphism_found = false;
 
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < n; ++i) {
     equivalence[i] = i;
+  }
 
   if (verifyPermutation(g1, g2, equivalence)) {
     printPermutation(equivalence, n);
@@ -101,16 +114,18 @@ bool verifyPermutation(adjacency_matrix *g1, adjacency_matrix *g2, int *equivale
   int n = g1->size;
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j <= i; ++j) {
-      if (g1->matrix[i][j] != g2->matrix[equivalence[i]][equivalence[j]])
+      if (g1->matrix[i][j] != g2->matrix[equivalence[i]][equivalence[j]]) {
         return false;
+      }
     }
   }
   return true;
 }
 
 void printPermutation(int *equivalence, int size) {
-  for (int i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i) {
     printf("%d ", equivalence[i]);
+  }
   printf("\n");
 }
 
