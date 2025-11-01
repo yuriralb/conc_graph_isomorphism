@@ -1,13 +1,13 @@
 /* File:     timer.h
  *
- * Purpose:  Define a macro that returns the number of seconds that 
+ * Purpose:  Define a macro that returns the number of seconds that
  *           have elapsed since some point in the past.  The timer
  *           should return times with microsecond accuracy.
  *
  * Note:     The argument passed to the GET_TIME macro should be
  *           a double, *not* a pointer to a double.
  *
- * Example:  
+ * Example:
  *    #include "timer.h"
  *    . . .
  *    double start, finish, elapsed;
