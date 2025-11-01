@@ -197,10 +197,11 @@ void* consumer(void* args) {
 AdjacencyMatrix readGraph() {
   int vertices, edges;
   int source, destination;
+  AdjacencyMatrix g;
 
   printf("Digite a quantidade de vertices: ");
   scanf("%d", &vertices);
-  AdjacencyMatrix g;
+
   g.size = vertices;
   g.matrix = (bool **) malloc(vertices * sizeof(bool *));
   for (int i = 0; i < vertices; ++i) {
@@ -213,7 +214,7 @@ AdjacencyMatrix readGraph() {
   for (int i = 0; i < edges; ++i) {
     scanf("%d %d", &source, &destination);
     while ((source >= vertices) || (destination >= vertices)) {
-      printf("Tamanho invalido de vertice. Insira novamete.\n");
+      printf("Tamanho invalido de vertice. Insira novamente.\n");
       scanf("%d %d", &source, &destination);
     }
     g.matrix[source][destination] = true;
