@@ -124,6 +124,11 @@ void* producer(void* args) {
     }
   }
 
+  sem_wait(&buffer_empty_slots);
+  pthread_mutex_lock(&buffer_lock);
+  buffer[in] = NULL;
+  pthread_mutex_unlock(&buffer_lock);
+
   free(permutation_model);
   free(exchange_counter);
   pthread_mutex_lock(&finish_lock);
@@ -154,21 +159,29 @@ bool bufferIsEmpty(int** buffer) {
 // consumida é um isomorfismo ou não
 void* consumer(void* args) {
   while (1) {
-    int* new_permutation;
     sem_wait(&permutations_available);
-
     pthread_mutex_lock(&finish_lock);
-    if ((finish) || (producer_finished && bufferIsEmpty(buffer))) {
+    if (finish) {
       pthread_mutex_unlock(&finish_lock);
+      sem_post(&permutations_available);
       break;
     }
     pthread_mutex_unlock(&finish_lock);
 
+    int* new_permutation;
+
     pthread_mutex_lock(&buffer_lock);
     new_permutation = buffer[out];
-    buffer[out] = NULL;
     out = (out + 1) % (buffer_size);
     pthread_mutex_unlock(&buffer_lock);
+
+    if (new_permutation == NULL){
+      pthread_mutex_lock(&finish_lock);
+      finish = true;
+      pthread_mutex_unlock(&finish_lock);
+      sem_post(&permutations_available);
+      break;
+    }
 
     if (verifyPermutation(&graph1, &graph2, new_permutation)) {
       pthread_mutex_lock(&finish_lock);
@@ -231,8 +244,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  // Lendo dados do arquio de leitura
-
+  // Lendo dados do arquivo de leitura
   // Abre arquivo de leitura
   FILE* read_file = fopen(argv[1], "rb");
   if (read_file == NULL) {
@@ -397,6 +409,7 @@ number_of_vertices = graph1.size;
   }
 
   // Libera a memória alocada pelos grafos
+  free(buffer);
   for (int i = 0; i < graph1.size; i++) free(graph1.matrix[i]);
   free(graph1.matrix);
   for (int i = 0; i < graph2.size; i++) free(graph2.matrix[i]);
