@@ -84,7 +84,7 @@ void* producer(void* args) {
   sem_wait(&buffer_empty_slot);
   pthread_mutex_lock(&buffer_lock);
   buffer[in] = new_permutation;
-  in = (in + 1) % (buffer_size - 1);
+  in = (in + 1) % (buffer_size);
   pthread_mutex_unlock(&buffer_lock);
   sem_post(&permutations_available);
 
