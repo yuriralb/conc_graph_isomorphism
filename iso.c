@@ -269,25 +269,33 @@ int main(int argc, char* argv[]) {
     pthread_create(&tids[i], NULL, consumer, NULL);
   }
 
+  // Espera as threads consumidoras retornarem
   for (int i = 0; i < number_of_consumer_threads + 1; i++) {
     pthread_join(tids[i], NULL);
   }
 
+  // Imprime o resultado pro usuário a depender se é isomorfo ou não
   if (isomorphism_found) {
     printf("Os grafos sao isomorficos!\n");
   }
   else {
     printf("Os grafos nao sao isomorficos.\n");
   }
+
+  // Destroi os semáforos e mutexes
   pthread_mutex_destroy(&buffer_lock);
   pthread_mutex_destroy(&finish_lock);
   sem_destroy(&permutations_available);
   sem_destroy(&buffer_empty_slot);
+
+  // Calcula e imprime o tempo que o programa esteve rodando
   GET_TIME(finish);
   elapsed = finish - start;
   if (options.show_time) {
     printf("Tempo Concorrente: %e segundos\n", elapsed);
   }
+
+  // Libera a memória alocada pelos grafos
   for (int i = 0; i < graph1.size; i++) free(graph1.matrix[i]);
   free(graph1.matrix);
   for (int i = 0; i < graph2.size; i++) free(graph2.matrix[i]);
