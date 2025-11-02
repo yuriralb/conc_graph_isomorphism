@@ -7,3 +7,6 @@
 
 # Ignora arquivos gerados pelo vscode
 *.vscode
+
+# Ignora arquivos temporários gerados pelo latex
+temp-files
