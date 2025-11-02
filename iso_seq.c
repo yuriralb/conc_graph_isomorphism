@@ -70,7 +70,7 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
         swap(&equivalence[exchange_counter[exchange_index]], &equivalence[exchange_index]);
 
       if (verifyPermutation(g1, g2, equivalence)) {
-        // printPermutation(equivalence, n);
+        printPermutation(equivalence, n);
         isomorphism_found = true;
         return true;
       }

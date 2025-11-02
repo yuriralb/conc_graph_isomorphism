@@ -60,3 +60,11 @@ create_binary(
     11, 1, [[3, 3]],
     11, 1, [[5, 4]]
 )
+
+# Teste 6 (Grafo gigantesco esparso com 1 ligação) (não isomorfo)
+create_binary(
+    "file6.bin",
+    1, 1, 20, 30,
+    12, 1, [[8, 9]],
+    12, 1, [[5, 6]]
+)
