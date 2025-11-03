@@ -33,38 +33,30 @@ create_binary(
 create_binary(
     "file2.bin",
     1, 1, 4, 8,
-    1000, 1, [[67, 92]],
-    1000, 1, [[0, 1]]
+    10, 1, [[3, 3]],
+    10, 1, [[5, 4]]
 )
 
 # Teste 3 (Grafo gigantesco esparso com 1 ligação) (isomorfo)
 create_binary(
     "file3.bin",
     1, 1, 4, 8,
-    11, 1, [[0, 1]],
-    11, 1, [[5, 4]]
+    7, 1, [[3, 2]],
+    7, 1, [[5, 4]]
 )
 
 # Teste 4 (Grafo gigantesco esparso com 1 ligação) (não isomorfo)
 create_binary(
     "file4.bin",
-    1, 1, 4, 8,
-    10, 1, [[3, 3]],
-    10, 1, [[5, 4]]
-)
-
-# Teste 5 (Grafo gigantesco esparso com 1 ligação) (não isomorfo)
-create_binary(
-    "file5.bin",
     1, 1, 4, 30,
     11, 1, [[3, 3]],
     11, 1, [[5, 4]]
 )
 
-# Teste 6 (Grafo gigantesco esparso com 1 ligação) (não isomorfo)
+# Teste 5 (Grafo gigantesco esparso com 1 ligação) (não isomorfo)
 create_binary(
-    "file6.bin",
+    "file5.bin",
     1, 1, 20, 30,
-    12, 1, [[8, 9]],
+    12, 1, [[8, 8]],
     12, 1, [[5, 6]]
 )

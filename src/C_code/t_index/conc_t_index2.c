@@ -1,75 +1,80 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <pthread.h>
 #include "../timer.h"
+#include "../util.h"
 
 typedef struct {
   int fixed_index;
 } ThreadArgs;
 
-typedef struct {
-  bool show_isomorphism;
-  bool show_time;
-} Options;
-
-// Estrutura de matriz de adjacência
-typedef struct {
-  // Tamanho da matriz (n x n)
-  int size;
-  // Matriz booleana (i, j) = 0 se não há adjacência de i para j e 1 se há
-  bool** matrix;
-} AdjacencyMatrix;
-
-Options options;
-int number_of_vertices; // Número de vértices de cada grafo
-bool isomorphism_found = false;
 pthread_mutex_t isomorphism_lock;
-AdjacencyMatrix graph1;
-AdjacencyMatrix graph2;
 int* permutation_model;
+extern Options options;
+extern AdjacencyMatrix graph1, graph2;
+extern int number_of_vertices; // Número de vértices de cada grafo
+extern int number_of_consumer_threads, buffer_size; // Variáveis não utilizadas em seq, e t_index
+extern bool isomorphism_found;
 
-// Verifica se a permutação dada é um isomorfismo
-bool verifyPermutation(AdjacencyMatrix *graph1, AdjacencyMatrix *graph2, int *permutation) {
-  // permutation é um vetor que representa a bijeção entre os vértices de graph1 e graph2
-  // permutation[x] == y significa que a bijeção leva o vértice x de graph1 no vértice y de graph2
-  int n = graph1->size; // == graph2->size
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j <= i; ++j) {
-      if (graph1->matrix[i][j] != graph2->matrix[permutation[i]][permutation[j]]) {
-        return false;
-      }
-    }
+// Função que será executada pelas threads responsáveis por cada index
+void *threadFunction(void *arg);
+
+//entrada do programa ./<nome do programa> <nome do arquivo de leitura>
+int main(int argc, char* argv[]) {
+  double start, finish, elapsed;
+
+  if (argc != 2) {
+    printf("Entrada invalida. \nUso: %s <nome do arquivo de leitura>.bin\nFormato do arquivo de leitura: <mostrar isomorfismo (0 ou 1)> <mostrar tempo (0 ou 1)> <quantidade de threads consumidoras (int)> <tamanho do buffer (int)>\n<quantidade de vértices do primeiro grafo (int)> <quantidade de arestas do primeiro grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n<quantidade de vértices do segundo grafo (int)> <quantidade de arestas do segundo grafo (int)> <primeira adjacência (int int)> ... <última adjacência (int int)>\n", argv[0]);
+    return 1;
   }
-  return true;
-}
 
-// Troca o conteúdo dos ponteiros a e b
-void swap(int *a, int *b) {
-  int tmp = *a;
-  *a = *b;
-  *b = tmp;
-}
+  readGraphsFromFile(argv[1]);
 
-// Thread produtora que produz as permutações e as guarda dentro do buffer
+  GET_TIME(start);
+  number_of_vertices = graph1.size;
+  pthread_t tids[number_of_vertices];
+  pthread_mutex_init(&isomorphism_lock, NULL);
 
-void printPermutation(int *permutation, int size) {
-  printf("graph1 | graph2\n");
-  for (int i = 0; i < size; ++i) {
-    printf(" [%d]  -->  [%d]   \n", i, permutation[i]);
+  permutation_model = malloc(number_of_vertices*sizeof(int));
+  for (int i = 0; i < number_of_vertices; i++) {
+    permutation_model[i] = i;
   }
-  printf("\n");
+
+  // Cria uma thread para cada prefixo fixo
+  for (int i = 0; i < number_of_vertices; i++) {
+    ThreadArgs* args = (ThreadArgs*) malloc(sizeof(ThreadArgs));
+      args->fixed_index = i;
+      pthread_create(&tids[i], NULL, threadFunction, (void*) args);
+  }
+
+  // Espera todas as threads terminarem
+  for (int i = 0; i < number_of_vertices; i++) {
+      pthread_join(tids[i], NULL);
+  }
+
+  if (isomorphism_found) {
+    printf("Os grafos sao isomorfos!\n");
+  } else {
+    printf("Os grafos nao sao isomorfos.\n");
+  }
+
+  pthread_mutex_destroy(&isomorphism_lock);
+  GET_TIME(finish);
+  elapsed = finish - start;
+  if (options.show_time) {
+    printf("Concorrente (conc_t_index2) levou: %e seconds\n", elapsed);
+  }
+  for (int i = 0; i < graph1.size; i++) {
+    free(graph1.matrix[i]);
+  }
+  free(graph1.matrix);
+  for (int i = 0; i < graph2.size; i++) {
+    free(graph2.matrix[i]);
+  }
+  free(graph2.matrix);
+  free(permutation_model);
+  return 0;
 }
 
-void printVec(int* permutation, int fixed_index, int size) {
-  printf("fixed_index: %d\n", fixed_index);
-  for (int i = 0; i < size; i++) {
-    printf("%d ", permutation[i]);
-  }
-  printf("\n");
-}
-// Threads consumidoras que consomem os conteúdos dentro do buffer e testam se a permutação
-// consumida é um isomorfismo ou não
+
+
 void *threadFunction(void *arg) {
     ThreadArgs* args = (ThreadArgs*) arg;
     int exchange_index = 1;
@@ -94,10 +99,12 @@ void *threadFunction(void *arg) {
 
     //printVec(permutation, args->fixed_index, 3);
     if (verifyPermutation(&graph1, &graph2, permutation)) {
-      //printPermutation(permutation, number_of_vertices);
       pthread_mutex_lock(&isomorphism_lock);
       isomorphism_found = true;
       pthread_mutex_unlock(&isomorphism_lock);
+      if (options.show_isomorphism) {
+        printIsomorphism(permutation, number_of_vertices);
+      }
       free(permutation);
       free(permutation_part);
       free(exchange_counter);
@@ -115,16 +122,18 @@ void *threadFunction(void *arg) {
       permutation[0] = permutation_model[args->fixed_index];
       index = 0;
       for (int i = 1; i < number_of_vertices; i++) {
-        permutation[i] = permutation_part[i];
+        permutation[i] = permutation_part[index];
         index++;
       }
 
       //printVec(permutation_part, args->fixed_index, 2);
       if (verifyPermutation(&graph1, &graph2, permutation)) {
-        //printPermutation(permutation, number_of_vertices);
         pthread_mutex_lock(&isomorphism_lock);
         isomorphism_found = true;
         pthread_mutex_unlock(&isomorphism_lock);
+        if (options.show_isomorphism) {
+          printIsomorphism(permutation, number_of_vertices);
+        }
         break;
       }
 
@@ -141,83 +150,4 @@ void *threadFunction(void *arg) {
     free(exchange_counter);
     free(args);
     pthread_exit(NULL);
-}
-
-AdjacencyMatrix readGraph() {
-  int vertices, edges;
-  int source, destination;
-
-  printf("Digite a quantidade de vertices: ");
-  scanf("%d", &vertices);
-  AdjacencyMatrix g;
-  g.size = vertices;
-  g.matrix = (bool **) malloc(vertices * sizeof(bool *));
-  for (int i = 0; i < vertices; ++i) {
-    g.matrix[i] = calloc(vertices, sizeof(bool));
-  }
-
-  printf("Digite a quantidade de arestas: ");
-  scanf("%d", &edges);
-  printf("Digite as arestas no formato: <vertice1 vertice2>\n");
-  for (int i = 0; i < edges; ++i) {
-    scanf("%d %d", &source, &destination);
-    while ((source >= vertices) || (destination >= vertices)) {
-      printf("Tamanho invalido de vertice. Insira novamete.\n");
-      scanf("%d %d", &source, &destination);
-    }
-    g.matrix[source][destination] = true;
-    g.matrix[destination][source] = true;
-  }
-
-  return g;
-}
-
-int main() {
-  double start, finish, elapsed;
-  graph1 = readGraph();
-  graph2 = readGraph();
-  number_of_vertices = graph1.size;
-  pthread_t tids[number_of_vertices];
-  pthread_mutex_init(&isomorphism_lock, NULL);
-
-  GET_TIME(start);
-
-  permutation_model = malloc(number_of_vertices*sizeof(int));
-  for (int i = 0; i < number_of_vertices; i++) {
-    permutation_model[i] = i;
-  }
-
-
-  // Cria uma thread para cada prefixo fixo
-  for (int i = 0; i < number_of_vertices; i++) {
-    ThreadArgs* args = (ThreadArgs*) malloc(sizeof(ThreadArgs));
-      args->fixed_index = i;
-      pthread_create(&tids[i], NULL, threadFunction, (void*) args);
-  }
-
-  // Espera todas as threads terminarem
-  for (int i = 0; i < number_of_vertices; i++) {
-      pthread_join(tids[i], NULL);
-  }
-
-  if (isomorphism_found) {
-    printf("Os grafos sao isomorfos!\n");
-  } else {
-    printf("Os grafos nao sao isomorfos.\n");
-  }
-
-  pthread_mutex_destroy(&isomorphism_lock);
-  GET_TIME(finish);
-  elapsed = finish - start;
-  printf("Concorrente levou: %e seconds\n", elapsed);
-  for (int i = 0; i < graph1.size; i++) {
-    free(graph1.matrix[i]);
-  }
-  free(graph1.matrix);
-  for (int i = 0; i < graph2.size; i++) {
-    free(graph2.matrix[i]);
-  }
-  free(graph2.matrix);
-  free(permutation_model);
-  return 0;
 }

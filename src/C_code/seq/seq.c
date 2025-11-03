@@ -1,50 +1,50 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include "../timer.h"
+#include "../util.h"
 
-typedef struct {
-  int size;
-  bool **matrix;
-} adjacency_matrix;
 
-adjacency_matrix readGraph();
-bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2);
-bool verifyPermutation(adjacency_matrix *g1, adjacency_matrix *g2, int *equivalence);
-void printPermutation(int *equivalence, int size);
-void swap(int *a, int *b);
+bool testIsomorphism(AdjacencyMatrix *graph1, AdjacencyMatrix *graph2);
+extern Options options;
+extern AdjacencyMatrix graph1, graph2;
+extern int number_of_vertices; // Número de vértices de cada grafo
+extern int number_of_consumer_threads, buffer_size; // Variáveis não utilizadas em seq, e t_index
+extern bool isomorphism_found;
 
-int main() {
-  adjacency_matrix g1 = readGraph();
-  adjacency_matrix g2 = readGraph();
+//entrada do programa ./<nome do programa> <nome do arquivo de leitura>
+int main(int argc, char* argv[]) {
   double start, finish, elapsed;
 
+  readGraphsFromFile(argv[1]);
+
   GET_TIME(start);
-  if (!testIsomorphism(&g1, &g2)) {
-    printf("The graphs are not isomorphic\n");
+  if (!testIsomorphism(&graph1, &graph2)) {
+    printf("Os grafos nao sao isomorfos.\n");
+  } else {
+    printf("Os grafos sao isomorfos!\n");
   }
 
   GET_TIME(finish);
   elapsed = finish - start;
-  printf("Tempo Sequencial: %e segundos\n", elapsed);
+  if (options.show_time) {
+    printf("Tempo Sequencial: %e segundos\n", elapsed);
+  }
   // libera memória
-  for (int i = 0; i < g1.size; i++) {
-    free(g1.matrix[i]);
+  for (int i = 0; i < graph1.size; i++) {
+    free(graph1.matrix[i]);
   }
-  free(g1.matrix);
-  for (int i = 0; i < g2.size; i++) {
-    free(g2.matrix[i]);
+  free(graph1.matrix);
+  for (int i = 0; i < graph2.size; i++) {
+    free(graph2.matrix[i]);
   }
-  free(g2.matrix);
+  free(graph2.matrix);
   return 0;
 }
 
-bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
-  if (g1->size != g2->size) {
+bool testIsomorphism(AdjacencyMatrix *graph1, AdjacencyMatrix *graph2) {
+  if (graph1->size != graph2->size) {
     return false;
   }
 
-  int n = g1->size;
+  int n = graph1->size;
   int *equivalence = malloc(n * sizeof(int));
   int *exchange_counter = calloc(n, sizeof(int));
   int exchange_index = 1;
@@ -54,8 +54,10 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
     equivalence[i] = i;
   }
 
-  if (verifyPermutation(g1, g2, equivalence)) {
-    // printPermutation(equivalence, n);
+  if (verifyPermutation(graph1, graph2, equivalence)) {
+    if (options.show_isomorphism) {
+      printIsomorphism(equivalence, n);
+    }
     free(equivalence);
     free(exchange_counter);
     return true;
@@ -69,8 +71,10 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
       else
         swap(&equivalence[exchange_counter[exchange_index]], &equivalence[exchange_index]);
 
-      if (verifyPermutation(g1, g2, equivalence)) {
-        printPermutation(equivalence, n);
+      if (verifyPermutation(graph1, graph2, equivalence)) {
+        if (options.show_isomorphism) {
+          printIsomorphism(equivalence, n);
+        }
         isomorphism_found = true;
         return true;
       }
@@ -87,51 +91,4 @@ bool testIsomorphism(adjacency_matrix *g1, adjacency_matrix *g2) {
   free(equivalence);
   free(exchange_counter);
   return isomorphism_found;
-}
-
-adjacency_matrix readGraph() {
-  int vertices, edges;
-  int source, destination;
-
-  scanf("%d", &vertices);
-  adjacency_matrix g;
-  g.size = vertices;
-  g.matrix = malloc(vertices * sizeof(bool *));
-  for (int i = 0; i < vertices; ++i) {
-    g.matrix[i] = calloc(vertices, sizeof(bool));
-  }
-
-  scanf("%d", &edges);
-  for (int i = 0; i < edges; ++i) {
-    scanf("%d %d", &source, &destination);
-    g.matrix[source][destination] = true;
-    g.matrix[destination][source] = true;
-  }
-
-  return g;
-}
-
-bool verifyPermutation(adjacency_matrix *g1, adjacency_matrix *g2, int *equivalence) {
-  int n = g1->size;
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j <= i; ++j) {
-      if (g1->matrix[i][j] != g2->matrix[equivalence[i]][equivalence[j]]) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-void printPermutation(int *equivalence, int size) {
-  for (int i = 0; i < size; ++i) {
-    printf("%d ", equivalence[i]);
-  }
-  printf("\n");
-}
-
-void swap(int *a, int *b) {
-  int tmp = *a;
-  *a = *b;
-  *b = tmp;
 }
