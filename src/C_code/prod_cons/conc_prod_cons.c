@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "timer.h"
+#include "../timer.h"
 
 typedef struct {
   bool show_isomorphism;

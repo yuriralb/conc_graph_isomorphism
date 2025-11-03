@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "timer.h"
+#include "../timer.h"
 
 typedef struct {
   int fixed_index;
