@@ -129,7 +129,7 @@ void *threadFunction(void *arg) {
       permutation[0] = permutation_model[args->fixed_index];
       index = 0;
       for (int i = 1; i < number_of_vertices; i++) {
-        permutation[i] = permutation_part[i];
+        permutation[i] = permutation_part[index];
         index++;
       }
 
