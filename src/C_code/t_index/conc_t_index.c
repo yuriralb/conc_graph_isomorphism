@@ -100,11 +100,10 @@ void *threadFunction(void *arg) {
     if (verifyPermutation(&graph1, &graph2, permutation)) {
       pthread_mutex_lock(&isomorphism_lock);
       isomorphism_found = true;
-      pthread_mutex_unlock(&isomorphism_lock);
       if (options.show_isomorphism) {
         printIsomorphism(permutation, number_of_vertices);
       }
-
+      pthread_mutex_unlock(&isomorphism_lock);
       free(permutation);
       free(permutation_part);
       free(exchange_counter);
@@ -138,10 +137,10 @@ void *threadFunction(void *arg) {
       if (verifyPermutation(&graph1, &graph2, permutation)) {
         pthread_mutex_lock(&isomorphism_lock);
         isomorphism_found = true;
-        pthread_mutex_unlock(&isomorphism_lock);
         if (options.show_isomorphism) {
         printIsomorphism(permutation, number_of_vertices);
         }
+        pthread_mutex_unlock(&isomorphism_lock);
       }
 
       exchange_counter[exchange_index]++;

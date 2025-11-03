@@ -21,6 +21,38 @@ def create_binary(file_name,
 
     print(f"created file {file_name}")
 
+# Teste 0_1 (Teste de parâmetros de entrada)
+create_binary(
+    "file0_1.bin",
+    0, 0, 4, 8,
+    3, 3, [[0, 1], [1, 2], [2, 0]],
+    3, 3, [[0, 1], [2, 0], [2, 1]]
+)
+
+# Teste 0_2 (Teste de parâmetros de entrada)
+create_binary(
+    "file0_2.bin",
+    0, 1, 4, 8,
+    3, 3, [[0, 1], [1, 2], [2, 0]],
+    3, 3, [[0, 1], [2, 0], [2, 1]]
+)
+
+# Teste 0_3 (Teste de parâmetros de entrada)
+create_binary(
+    "file0_3.bin",
+    1, 0, 4, 8,
+    3, 3, [[0, 1], [1, 2], [2, 0]],
+    3, 3, [[0, 1], [2, 0], [2, 1]]
+)
+
+# Teste 0_4 (Teste de parâmetros de entrada)
+create_binary(
+    "file0_4.bin",
+    1, 1, 4, 8,
+    3, 3, [[0, 1], [1, 2], [2, 0]],
+    3, 3, [[0, 1], [2, 0], [2, 1]]
+)
+
 # Teste 1 (triângulo) (isomorfo)
 create_binary(
     "file1.bin",
