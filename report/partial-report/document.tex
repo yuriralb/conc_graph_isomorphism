@@ -1,0 +1,21 @@
+\section{Descrição do problema geral}
+
+  Um isomorfismo entre grafos não direcionados é uma bijeção entre seus vértices que preserva adjacência. Em outras palavras, dois grafos são isomorfos se podemos ``renomear'' os vértices de um para obter o outro (portanto, eles devem ter o mesmo número de vértices e de arestas). O problema que escolhemos abordar consiste em detectar se dois grafos são isomorfos ou não e, em caso afirmativo, mostrar um isomorfismo entre eles.
+
+  Uma solução possível para o problema é, dados os dois grafos com o mesmo número $n$ de vértices, numerados de $0$ a $n-1$, testar cada uma das possíveis permutações dos $n$ vértices do primeiro grafo, verificando se as adjacências são mantidas no segundo. Se todas as adjacências forem preservadas, então essa permutação é a bijeção desejada e, se alguma adjacência não é preservada, podemos descartar a permutação sendo analisada. Isso pode ser feito sequencialmente, uma permutação por vez, porém, se o número de vértices é $n$, será necessário testar $O(n!)$ permutações. Assim, como cada teste de permutação é independente dos outros, a solução naturalmente se beneficia do uso de concorrência, uma vez que essas verificações de permutações podem ser realizadas concorrentemente.
+
+
+\section{Projeto da solução concorrente}
+
+  Como várias das verificações do problema ocorrem de maneira independente em cada permutação de vértices do grafo, é possível que, de maneira concorrente, deleguemos essas verificações para mais de um fluxo de execução, de forma que esperemos um ganho de desempenho e que o resultado final não seja alterado por conta da independência entre os subproblemas. Além disso, dentro de cada permutação, cada adjacência pode ser verificada concorrentemente, já que são independentes e, em nenhum momento da execução, há escrita sobre os dados de entrada.
+
+  Uma possível estratégia para dividir a tarefa entre os fluxos de execução seria apenas dividir a verificação das possíveis permutações de vértices igualmente entre as threads (cada thread sendo responsável por verificar um número fixo de permutações). Outra estratégia seria realizar um balanceamento de carga sob demanda entre um número fixo de threads, de modo que cada thread realize uma verificação conforme sua disponibilidade.
+
+  Acreditamos que a segunda estratégia (balanceamento de carga sob demanda) seria melhor por uma diminuição no \nonport{overhead} da aplicação e pelo balanceamento de carga, visto que uma verificação pode durar muito mais do que a outra, o que faz com que dividir as verificações igualmente entre as threads não seja uma boa ideia. Como exemplo, se a primeira adjacência verificada não for verdadeira, a permutação é imediatamente descartada, enquanto se todas as adjacências, exceto a última, forem satisfeitas, então seriam realizadas tantas verificações quanto for o número de arestas.
+
+
+\section{Casos de teste de corretude e desempenho}
+
+  Para verificação da corretude do problema, escolheremos grafos isomorfos e não isomorfos e verificaremos se a saída satisfará o resultado esperado. Além disso, compararemos a saída da solução concorrente com aquela da solução sequencial. Entretanto, esperamos que não haja problemas de corretude visto que não há concorrência na escrita dos dados de entrada do problema.
+
+  Para avaliação de desempenho, utilizaremos das métricas de desempenho como aceleração e eficiência para analisar como os tempos de execução se comportam para diferentes tipos de entrada, como, por exemplo, grafos esparsos, cheios, etc., além disso, podemos comparar o ganho de desempenho entre as estratégias de solução concorrente e escolher a mais robusta entre elas.
