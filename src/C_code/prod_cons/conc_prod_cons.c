@@ -161,7 +161,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  readGraphsFromFile(argv[1]);
+  if (readGraphsFromFile(argv[1])) {
+    return 1;
+  }
 
   GET_TIME(start);
   number_of_vertices = graph1.size;
