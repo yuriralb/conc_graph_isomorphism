@@ -13,7 +13,9 @@ extern bool isomorphism_found;
 int main(int argc, char* argv[]) {
   double start, finish, elapsed;
 
-  readGraphsFromFile(argv[1]);
+  if (readGraphsFromFile(argv[1])) {
+    return 1;
+  }
 
   GET_TIME(start);
   if (!testIsomorphism(&graph1, &graph2)) {

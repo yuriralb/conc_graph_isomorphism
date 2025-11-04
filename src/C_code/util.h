@@ -58,47 +58,47 @@ void printIsomorphism(int* isomorphism, int size) {
   printf("\n");
 }
 
-void readGraphsFromFile(char* file_name) {
+int readGraphsFromFile(char* file_name) {
   FILE* read_file = fopen(file_name, "rb");
   if (read_file == NULL) {
     printf("Erro durante a abertura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // show_isomorphism
   if (fread(&options.show_isomorphism, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // show_time
   if (fread(&options.show_time, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // number_of_consumer_threads (não utilizada nesse caso)
   if (fread(&number_of_consumer_threads, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // buffer_size (não utilizada nesse caso)
   if (fread(&buffer_size, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // Número de vértices do primeiro grafo
   if (fread(&graph1.size, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   int number_of_edges_graph1;
   if (fread(&number_of_edges_graph1, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // Arestras do primeiro grafo
@@ -110,11 +110,11 @@ void readGraphsFromFile(char* file_name) {
   for (int i = 0; i < number_of_edges_graph1; i++) {
     if (fread(source_destiny, sizeof(int), 2, read_file) != 2) {
       printf("Erro durante a leitura do arquivo.\n");
-      return;
+      return 1;
     }
     if (source_destiny[0] < 0 || source_destiny[1] < 0 || source_destiny[0] >= graph1.size || source_destiny[1] >= graph1.size) {
       printf("Erro. Rótulo de vértice inválido no arquivo.\n");
-      return;
+      return 1;
     }
     graph1.matrix[source_destiny[0]][source_destiny[1]] = true;
     graph1.matrix[source_destiny[1]][source_destiny[0]] = true;
@@ -123,14 +123,14 @@ void readGraphsFromFile(char* file_name) {
   // Número de vértices do segundo grafo
   if (fread(&graph2.size, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // Número de arestas do segundo grafo
   int number_of_edges_graph2;
   if (fread(&number_of_edges_graph2, sizeof(int), 1, read_file) != 1) {
     printf("Erro durante a leitura do arquivo.\n");
-    return;
+    return 1;
   }
 
   // Arestas do segundo grafo
@@ -141,17 +141,18 @@ void readGraphsFromFile(char* file_name) {
   for (int i = 0; i < number_of_edges_graph2; i++) {
     if (fread(source_destiny, sizeof(int), 2, read_file) != 2) {
       printf("Erro durante a leitura do arquivo.\n");
-      return;
+      return 1;
     }
     if (source_destiny[0] < 0 || source_destiny[1] < 0 || source_destiny[0] >= graph2.size || source_destiny[1] >= graph2.size) {
       printf("Erro. Rótulo de vértice inválido no arquivo.\n");
-      return;
+      return 1;
     }
     graph2.matrix[source_destiny[0]][source_destiny[1]] = true;
     graph2.matrix[source_destiny[1]][source_destiny[0]] = true;
   }
 
   fclose(read_file);
+  return 0;
 }
 
 AdjacencyMatrix readGraph() {
