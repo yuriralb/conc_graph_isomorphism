@@ -1,0 +1,71 @@
+Grafos:
+G1: 9, 64, [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 0]],
+G2: 9, 64, [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 8]]
+
+---------------Concorrente conc_t_index2----------------
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 5.614042e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.345987e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.546021e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.829023e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.268024e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 5.846977e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.801128e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.560087e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.000042e-03 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index2) levou: 6.736040e-03 seconds
+------------------Sequencial-------------------
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.010799e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.055789e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.005101e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.072717e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 9.484053e-03 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 8.767128e-03 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.079106e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 9.088993e-03 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 1.081991e-02 segundos
+Os grafos nao sao isomorfos.
+Tempo Sequencial: 9.761095e-03 segundos
+Os grafos nao sao isomorfos.
+
+------------------Prod Consumidor-------------------
+
+---------------Concorrente conc_t_index----------------
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.915787e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.833199e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 4.029822e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.956914e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.753901e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.963900e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 4.029298e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.982401e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 3.993797e-02 seconds
+Os grafos nao sao isomorfos.
+Concorrente (conc_t_index) levou: 4.106498e-02 seconds

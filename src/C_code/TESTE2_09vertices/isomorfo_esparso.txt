@@ -1,0 +1,71 @@
+Grafos:
+G1: 9, 5, [[1, 2], [1, 3], [1, 4], [3, 2], [8, 6]],
+G2: 9, 5, [[5, 4], [5, 7], [5, 8], [7, 4], [2, 0]]
+---------------Concorrente conc_t_index2----------------
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.797054e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 4.037142e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 4.169941e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.988981e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 4.384041e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.916025e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.942966e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 4.170895e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.865957e-03 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index2) levou: 3.899813e-03 seconds
+
+------------------Sequencial-------------------
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.365209e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.358604e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.333213e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.425719e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.398301e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.342916e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.325417e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.379108e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.346898e-02 segundos
+Os grafos sao isomorfos!
+Tempo Sequencial: 1.355004e-02 segundos
+
+------------------Prod Consumidor-------------------
+
+
+---------------Concorrente conc_t_index2----------------
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 4.014707e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 4.016900e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 4.061508e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.828406e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.896499e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.966618e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.684902e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 4.001307e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.892112e-02 seconds
+Os grafos sao isomorfos!
+Concorrente (conc_t_index) levou: 3.849506e-02 seconds
