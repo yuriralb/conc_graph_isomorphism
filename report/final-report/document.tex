@@ -40,10 +40,10 @@
   \begin{itemize}
     \item Sequencial;
     \item Concorrente versão 1;
-    \item Concorrente versão 2;
+    \item Concorrente versão 2,
   \end{itemize}
 
-  Onde ``Concorrente versão 1'' e ``Concorrente versão 2'' se referem à nova estratégia concorrente adotada em que o número de threads é igual ao número de vértices, sendo sua única diferença a presença de uma verificação de variável de estado (para verificar se alguma outra thread já encontrou um isomorfismo) encapsulada por exclusão mútua a cada iteração (na versão 1), enquanto, na versão 2, essa verificação não é feita e cada thread simplesmente retorna o isomorfismo encontrado (caso exista).
+  onde ``Concorrente versão 1'' e ``Concorrente versão 2'' se referem à nova estratégia concorrente adotada em que o número de threads é igual ao número de vértices, sendo sua única diferença a presença de uma verificação de variável de estado (para verificar se alguma outra thread já encontrou um isomorfismo) encapsulada por exclusão mútua a cada iteração (na versão 1), enquanto, na versão 2, essa verificação não é feita e cada thread simplesmente retorna o isomorfismo encontrado (caso exista).
 
   Além disso, nos testes realizados, observamos que o modelo produtor/consumidor teve um tempo muito grande relativamente aos outros testes. Por isso, e por esse modelo não ser a versão final optada pelo grupo, decidimos não incluir suas métricas no resultado dos testes realizados.
 
