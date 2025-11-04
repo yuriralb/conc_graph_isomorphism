@@ -1,21 +1,109 @@
-\section{Descrição do problema geral}
 
-  Um isomorfismo entre grafos não direcionados é uma bijeção entre seus vértices que preserva adjacência. Em outras palavras, dois grafos são isomorfos se podemos ``renomear'' os vértices de um para obter o outro (portanto, eles devem ter o mesmo número de vértices e de arestas). O problema que escolhemos abordar consiste em detectar se dois grafos são isomorfos ou não e, em caso afirmativo, mostrar um isomorfismo entre eles.
+\section{Descrição do problema}
 
-  Uma solução possível para o problema é, dados os dois grafos com o mesmo número $n$ de vértices, numerados de $0$ a $n-1$, testar cada uma das possíveis permutações dos $n$ vértices do primeiro grafo, verificando se as adjacências são mantidas no segundo. Se todas as adjacências forem preservadas, então essa permutação é a bijeção desejada e, se alguma adjacência não é preservada, podemos descartar a permutação sendo analisada. Isso pode ser feito sequencialmente, uma permutação por vez, porém, se o número de vértices é $n$, será necessário testar $O(n!)$ permutações. Assim, como cada teste de permutação é independente dos outros, a solução naturalmente se beneficia do uso de concorrência, uma vez que essas verificações de permutações podem ser realizadas concorrentemente.
+  Um isomorfismo entre grafos não direcionados é uma bijeção entre seus vértices que preserva a matriz de adjacência, ou seja, dois vértices do primeiro grafo são adjacentes se, e somente se, suas imagens pela bijeção o são no segundo grafo. Em outras palavras, dois grafos são isomorfos se podemos ``renomear'' os vértices de um para obter o outro (portanto, eles devem ter o mesmo número de vértices e de arestas). O problema que escolhemos abordar consiste em detectar se dois grafos são isomorfos ou não e, em caso afirmativo, mostrar um isomorfismo entre eles.
 
-
-\section{Projeto da solução concorrente}
-
-  Como várias das verificações do problema ocorrem de maneira independente em cada permutação de vértices do grafo, é possível que, de maneira concorrente, deleguemos essas verificações para mais de um fluxo de execução, de forma que esperemos um ganho de desempenho e que o resultado final não seja alterado por conta da independência entre os subproblemas. Além disso, dentro de cada permutação, cada adjacência pode ser verificada concorrentemente, já que são independentes e, em nenhum momento da execução, há escrita sobre os dados de entrada.
-
-  Uma possível estratégia para dividir a tarefa entre os fluxos de execução seria apenas dividir a verificação das possíveis permutações de vértices igualmente entre as threads (cada thread sendo responsável por verificar um número fixo de permutações). Outra estratégia seria realizar um balanceamento de carga sob demanda entre um número fixo de threads, de modo que cada thread realize uma verificação conforme sua disponibilidade.
-
-  Acreditamos que a segunda estratégia (balanceamento de carga sob demanda) seria melhor por uma diminuição no \nonport{overhead} da aplicação e pelo balanceamento de carga, visto que uma verificação pode durar muito mais do que a outra, o que faz com que dividir as verificações igualmente entre as threads não seja uma boa ideia. Como exemplo, se a primeira adjacência verificada não for verdadeira, a permutação é imediatamente descartada, enquanto se todas as adjacências, exceto a última, forem satisfeitas, então seriam realizadas tantas verificações quanto for o número de arestas.
+  Uma solução possível para o problema é, dados os dois grafos com o mesmo número $n$ de vértices, numerados de $0$ a $n-1$, testar cada uma das possíveis permutações dos $n$ vértices do primeiro grafo, verificando se as adjacências (e a falta delas) são verificadas. Se todas as adjacências e não-adjacências forem preservadas pela bijeção dada pela permutação, então essa permutação é um isomorfismo e, se alguma adjacência (ou não-adjacência) não é preservada, podemos descartar a permutação sendo analisada. Isso pode ser feito sequencialmente, uma permutação por vez, porém, se o número de vértices é $n$, será necessário testar $O(n!)$ permutações. Além disso, para verificar cada permutação, precisamos analisar toda uma matriz de adjacência, o que faz com que a complexidade total seja de $O(n! \, n^2)$. Assim, como cada teste de permutação é independente dos outros, a solução naturalmente se beneficia do uso de concorrência, uma vez que essas verificações de permutações podem ser realizadas concorrentemente.
 
 
-\section{Casos de teste de corretude e desempenho}
+\section{Projeto e implementação da solução concorrente}
 
-  Para verificação da corretude do problema, escolheremos grafos isomorfos e não isomorfos e verificaremos se a saída satisfará o resultado esperado. Além disso, compararemos a saída da solução concorrente com aquela da solução sequencial. Entretanto, esperamos que não haja problemas de corretude visto que não há concorrência na escrita dos dados de entrada do problema.
+  Inicialmente, decidimos implementar o modelo produtor-consumidor. Uma thread produtora era responsável por gerar bijeções entre os vértices dos grafos (representadas por permutações do vetor $[0, ..., n-1]$) utilizando o algoritmo de Heap e inserí-las em um buffer cujo tamanho era dado na entrada, enquanto um número, também fornecido na entrada do programa, de threads consumidoras retiravam essas permutações do buffer e verificavam concorrentemente se as bijeções satisfaziam os critérios de isomorfismo. Entretanto, devido à grande quantidade de variáveis de exclusão mútua e semáforos, além das verificações e alterações de variáveis de estado, o \nonport{overhead} introduzido fazia com que o programa levasse um tempo demasiadamente grande para realizar a verificação, perdendo para o sequencial com grande folga nos testes que realizamos. Portanto, decidimos realizar uma mudança de estratégia. A nova estratégia adotada consiste em ter um número de threads igual ao número de vértices, de modo que cada thread seja produtora e consumidora ao mesmo tempo. A i-ésima thread fica responsável por gerar e analisar as permutações que levam o vértice $0$ do primeiro grafo no vértice $i$ do segundo, ou seja, os vetores de permutação cuja primeira entrada é $i$. Cada thread, então realiza o algoritmo de Heap no restante do vetor, garantindo que todas as permutações do restante do vetor, e portanto todas as permutações cujo primeiro elemento é $i$, sejam verificadas exatamente uma vez. Além disso, como as permutações de cada thread são disjuntas, garantimos que não haja verificações redundantes.
 
-  Para avaliação de desempenho, utilizaremos das métricas de desempenho como aceleração e eficiência para analisar como os tempos de execução se comportam para diferentes tipos de entrada, como, por exemplo, grafos esparsos, cheios, etc., além disso, podemos comparar o ganho de desempenho entre as estratégias de solução concorrente e escolher a mais robusta entre elas.
+  Com a nova estratégia, conseguimos garantir maior independência para cada thread, de modo que elas possam executar de maneira a aumentar o paralelismo de dados, sem depender de esperas de filas. De fato, o único momento em que as threads esperam é quando o \nonport{loop} principal do programa é encerrado e elas têm que modificar uma variável em comum, enquanto, na estratégia anterior, essa verificação ocorria a cada iteração do laço principal.
+
+
+\section{Testes de corretude}
+
+  Para verificação da corretude do problema, fabricamos manualmente grafos isomorfos e não-isomorfos, esparsos e cheios, e verificamos se a saída satisfez o resultado esperado. Além disso, comparamos a saída da solução concorrente com aquela da solução sequencial adaptada de \cite{lspd-mackenzie-2021}.
+
+  Desse modo, os testes verificam entradas que geram todos os possíveis resultados esperados (isomorfos e não-isomorfos) e que apresentam diferentes demandas de processamento, já que se o número de isomorfismos for pequeno (caso que é mais comum quando os grafos são cheios), mais permutações deverão ser verificadas até que o programa retorne a saída.
+
+  No modelo produtor/consumidor, temos a garantia de boa distribuição de tarefas pois na medida em que o produtor fabrica uma nova permutação, uma thread consumidora é sinalizada, logo, nenhuma thread fica sobrecarregada com várias tarefas ao mesmo tempo.
+
+  Como explicado anteriormente, também temos garantia no último modelo implementado de que cada thread cuida de uma quantidade igual de casos visto que cada thread gera todas as permutações de um dado índice (que são de igual quantidade para todo índice) e todas diferentes entre si, fazendo com que haja boa distribuição de tarefas e nenhuma thread realize duplicação de processamento.
+
+
+\section{Testes de desempenho}
+
+  Para análise de desempenho, formulamos 4 tipos de testes, sendo esses:
+
+  \begin{itemize}
+    \item Grafos isomorfos esparsos;
+    \item Grafos isomorfos cheios;
+    \item Grafos não-isomorfos esparsos;
+    \item Grafos não-isomorfos cheios.
+  \end{itemize}
+
+  Para cada um dos tipos de teste, realizamos $5$ execuções de cada uma das seguintes implementações:
+
+  \begin{itemize}
+    \item Sequencial;
+    \item Concorrente versão 1;
+    \item Concorrente versão 2;
+  \end{itemize}
+
+  Onde ``Concorrente versão 1'' e ``Concorrente versão 2'' se referem à nova estratégia concorrente adotada em que o número de threads é igual ao número de vértices, sendo sua única diferença a presença de uma verificação de variável de estado (para verificar se alguma outra thread já encontrou um isomorfismo) encapsulada por exclusão mútua a cada iteração (na versão 1), enquanto, na versão 2, essa verificação não é feita e cada thread simplesmente retorna o isomorfismo encontrado (caso exista).
+
+  Além disso, nos testes realizados, observamos que o modelo produtor/consumidor teve um tempo muito grande relativamente aos outros testes. Por isso, e por esse modelo não ser a versão final optada pelo grupo, decidimos não incluir suas métricas no resultado dos testes realizados.
+
+  Realizamos testes de cada tipo para grafos com $9$ e $11$ vértices, tamanho de entrada que consideramos suficientemente variado já que, pela complexidade computacional altíssima do algoritmo $O(n!\, n^2)$, casos com número de vértices ligeiramente maior do que $11$ já se tornam inviáveis.
+
+  Os testes foram realizados em uma máquina com as seguintes especificações:
+
+  \begin{itemize}
+    \item Processador: Ryzen 7 5700X3D 4.2GHz;
+    \item Quantidade de Núcleos: 8 núcleos físicos e 8 núcleos lógicos;
+    \item Sistema Operacional: Linux Ubuntu.
+  \end{itemize}
+
+  Segue o resultado dos testes:
+
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+      \hline
+      Tipo & Arestas & $T_{seq}$ & $T_{c1}$ & $T_{c2}$ & $A_{c1}$ & $A_{c2}$ & $E_{c1}$ & $E_{c2}$ \\ \hline
+      Isomorfos     & 80 & 1.2169 & 5.1244 & 0.2826 & 0.2375 & 4.3065 & 0.0216 & 0.3915 \\
+      Isomorfos     &  5 & 0.0262 & 0.2501 & 0.1586 & 0.1046 & 0.1649 & 0.0095 & 0.0150 \\
+      Não-isomorfos & 80 & 0.8136 & 4.8477 & 0.3580 & 0.1678 & 2.2728 & 0.0153 & 0.2066 \\
+      Não-isomorfos &  1 & 1.3974 & 5.5716 & 0.3086 & 0.2508 & 4.5289 & 0.0228 & 0.4117 \\ \hline
+    \end{tabular}
+    \caption{Resultados médios (5 testes) para grafos isomorfos e não-isomorfos com 11 vértices.}
+  \end{table}
+
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+      \hline
+      Tipo    & Arestas & $T_{seq}$ & $T_{c1}$ & $T_{c2}$ & $A_{c1}$ & $A_{c2}$ & $E_{c1}$ & $E_{c2}$ \\ \hline
+      Isomorfos     & 64 & 0.0140 & 0.0395 & 0.0041 & 0.3542 & 3.4046 & 0.0394 & 0.3783 \\
+      Isomorfos     &  5 & 0.0138 & 0.0396 & 0.0041 & 0.3472 & 3.3768 & 0.0385 & 0.3752 \\
+      Não-isomorfos & 64 & 0.0102 & 0.0402 & 0.0063 & 0.2537 & 1.6115 & 0.0282 & 0.1791 \\
+      Não-isomorfos &  1 & 0.0129 & 0.0468 & 0.0041 & 0.2756 & 3.1227 & 0.0306 & 0.3470 \\ \hline
+    \end{tabular}
+    \caption{Resultados médios (5 testes) para grafos isomorfos e não-isomorfos com 9 vértices.}
+  \end{table}
+
+  Onde:
+
+  \begin{itemize}
+    \item $T$ é o tempo (em segundos) de execução;
+    \item $A$ é aceleração;
+    \item $E$ é eficiência;
+    \item $seq$ se refere ao modelo sequencial;
+    \item $c_1$ e $c_2$ se referem aos modelos concorrentes $1$ e $2$ explicados anteriormente.
+  \end{itemize}
+
+
+\section{Discussão}
+
+  Com alocação dinâmica de tarefas entre as threads, no modelo produtor/consumidor, devido ao \nonport{overhead} não houve ganho de desempenho. Na verdade, o tempo de execução foi tão alto que decidimos excluir essa estratégia dos testes. Quanto aos modelos concorrentes com alocação estática de tarefas, os quais escolhemos como solução final, nota-se que houve ganho de desempenho em relação ao sequencial, principalmente quando o número de vértices dos grafos é alto e quando os grafos são não-isomorfos, já que nesse caso todas as permutações possíveis são necessariamente verificadas até que o programa encontre a resposta.
+
+  Além disso, mesmo quando os grafos são isomorfos, houve ganho de desempenho das soluções concorrentes sobre a sequencial. Acreditamos que isso se deva ao fato de que, por testar mais permutações ``ao mesmo tempo'', as soluções concorrentes têm maior probabilidade de encontrar um isomorfismo e encerrar a execução do programa.
+
+  Uma possível melhoria a ser feita no programa (versão concorrente 2) seria fixar o número de threads para grafos com muitos vértices. Pois, para grafos de $14$ vértices, por exemplo, $14$ threads seriam criadas, o que provavelmente causaria um \nonport{overhead} extra em comparação ao mesmo programa com um número fixo de threads (que fosse igual ao número de núcleos físicos da $CPU$). Ainda assim, casos grandes como o de $14$ vértices se manteriam inviáveis pela alta complexidade do algoritmo.
+
+  Houve certa dificuldade na implementação do modelo produtor/consumidor tanto para fazé-lo ficar mais eficiente quanto para construir um código bem estruturado.
+
+  Os códigos utilizados podem ser encontrados em \cite{albuquerque2025conc_graph_isomorphism}.
